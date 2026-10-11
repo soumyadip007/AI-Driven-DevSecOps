@@ -1,37 +1,28 @@
 # Stage demo script (~10 minutes)
 
-## Prep (before talk)
+Full checklist: **[demo-walkthrough.md](demo-walkthrough.md)**.
+
+## Prep
 
 ```bash
-make install
-make scan
-make agent
-# Keep three windows ready:
-# 1) editor / PR view of apps/vuln-shop/src/routes/products.js
-# 2) artifacts/security-summary.json or CI checks
-# 3) agents/security-agent/out/evidence.md + audit.jsonl
+make install && make demo-reset && make scan && make agent
 ```
 
-Backup: record `make scan && make agent` once if conference Wi‑Fi is unreliable.
+Windows: vulnerable code · Actions/CI · `out/llm-briefing.md` + `audit.jsonl`.
 
 ## Live flow
 
-| Time | Say / do |
-|------|----------|
-| 0:00 | Open vulnerable PR (or local file). Point at string-concat SQL, `lodash@4.17.19`, Dockerfile without `USER`. |
-| 1:30 | Show CI red (or `artifacts/`): Semgrep SQLi, Trivy CVE, Conftest deny. |
-| 3:00 | Run `make agent`. Walk Observe → Reason → Plan in `audit.jsonl`. |
-| 4:30 | Show denied `merge_pr` line — permissions / tool boundaries. |
-| 5:30 | Open `evidence.md` + three patches: SQL, `lodash` bump, Dockerfile. Emphasize finding IDs. |
-| 7:00 | Optional: `make agent-apply && make test` then mention re-scan. |
-| 8:30 | Close: AI explains/remediates; controls evidence; human merges. |
+| Time | Do |
+|------|-----|
+| 0:00 | Vulnerable SQL + lodash + Dockerfile on `main` |
+| 1:30 | `make scan` or security Actions → `security-summary.json` |
+| 3:00 | `make agent` (Ollama) → `llm-briefing.md` + denied `merge_pr` in audit |
+| 5:30 | Evidence + three remediation files |
+| 7:00 | Actions → **security-agent-pr** → open the auto PR (heuristic CI) |
+| 9:00 | Close: scanners evidence · LLM explains · human merges |
 
-See also: [`projects.md`](./projects.md) for how the two projects connect.
-
-## Reset between rehearsals
+## Reset
 
 ```bash
-make demo-reset
-rm -rf agents/security-agent/out
-make scan && make agent
+make demo-reset && rm -rf agents/security-agent/out
 ```

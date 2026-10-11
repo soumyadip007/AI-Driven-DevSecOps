@@ -58,11 +58,13 @@ nav:
   - Concepts:
       - Glossary (SAST, SCA, …): concepts/glossary.md
       - Security loop: concepts/security-loop.md
+      - LLM (Ollama): concepts/llm.md
   - Projects:
       - Overview & connection: projects.md
       - Architecture: architecture.md
   - Demo:
-      - Tooling: tooling.md
+      - Step-by-step walkthrough: demo-walkthrough.md
       - Stage script: demo-script.md
+      - Tooling: tooling.md
       - CI explained: ci.md
   - Plan: plan.md

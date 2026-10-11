@@ -9,6 +9,9 @@ function parseArgs(argv) {
     apply: false,
     allowOpenPr: false,
     skipTests: false,
+    llm: process.env.LLM_PROVIDER || "ollama",
+    model: process.env.LLM_MODEL || process.env.OLLAMA_MODEL || "llama3",
+    ollamaHost: process.env.OLLAMA_HOST || "http://127.0.0.1:11434",
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -17,6 +20,9 @@ function parseArgs(argv) {
     else if (a === "--apply") args.apply = true;
     else if (a === "--allow-open-pr") args.allowOpenPr = true;
     else if (a === "--skip-tests") args.skipTests = true;
+    else if (a === "--llm") args.llm = argv[++i];
+    else if (a === "--model") args.model = argv[++i];
+    else if (a === "--ollama-host") args.ollamaHost = argv[++i];
     else if (a === "--help" || a === "-h") args.help = true;
   }
   return args;
@@ -28,16 +34,23 @@ async function main() {
     console.log(`Usage: node agents/security-agent/src/cli.js [options]
 
 Options:
-  --summary <path>   Path to security-summary.json (default: artifacts/security-summary.json)
-  --out <dir>        Output directory (default: agents/security-agent/out)
-  --apply            Write remediation into apps/vuln-shop (default: propose only)
-  --skip-tests       Skip validate/run_tests
-  --allow-open-pr    Grant OPEN_PR permission (still a stub)
+  --summary <path>     Path to security-summary.json
+  --out <dir>          Output directory
+  --apply              Write remediations into vuln-shop
+  --skip-tests         Skip validate/run_tests
+  --llm <provider>     ollama | none  (openai/anthropic later)
+  --model <name>       Model id (default: llama3)
+  --ollama-host <url>  Ollama base URL (default: http://127.0.0.1:11434)
+  --allow-open-pr      Grant OPEN_PR permission (still a stub)
+
+Env:
+  LLM_PROVIDER, LLM_MODEL, OLLAMA_HOST, OLLAMA_MODEL, OLLAMA_TIMEOUT_MS
 `);
     process.exit(0);
   }
 
   const root = path.resolve(__dirname, "..", "..", "..");
+  console.log(`LLM: ${args.llm} / ${args.model}`);
   const result = await runAgent({
     root,
     summaryPath: path.resolve(root, args.summary),
@@ -45,15 +58,26 @@ Options:
     allowOpenPr: args.allowOpenPr,
     applyPatch: args.apply,
     skipTests: args.skipTests,
+    llmProvider: args.llm,
+    llmModel: args.model,
+    llmBaseUrl: args.ollamaHost,
   });
 
   console.log("Security agent finished.");
   console.log(`  Hero finding: ${result.hero ? result.hero.finding_id : "none"}`);
   console.log(`  Remediations: ${result.remediationCount}`);
+  if (result.llm) {
+    console.log(
+      `  LLM:          ${result.llm.used ? `${result.llm.provider}/${result.llm.model}` : `skipped (${result.llm.error || result.llm.provider})`}`
+    );
+  }
   for (const p of result.patchPaths || []) {
     console.log(`  Patch:        ${p}`);
   }
   console.log(`  Evidence:     ${path.join(result.outDir, "evidence.md")}`);
+  if (result.llm && result.llm.used) {
+    console.log(`  Briefing:     ${path.join(result.outDir, "llm-briefing.md")}`);
+  }
   console.log(`  Audit log:    ${result.auditFile}`);
   if (result.validation && !result.validation.skipped) {
     console.log(`  Tests:        exit ${result.validation.status}`);

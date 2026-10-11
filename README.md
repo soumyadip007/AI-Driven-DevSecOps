@@ -18,11 +18,12 @@ AI orchestrates and explains; deterministic scanners provide evidence; humans ap
 
 | Doc | Topic |
 |-----|--------|
+| [`docs/demo-walkthrough.md`](docs/demo-walkthrough.md) | **Step-by-step stage demo** (show this) |
 | [`docs/concepts/glossary.md`](docs/concepts/glossary.md) | What **SAST**, **SCA**, **Semgrep**, **Trivy**, **Conftest**, **SBOM** mean |
+| [`docs/concepts/llm.md`](docs/concepts/llm.md) | Ollama integration |
 | [`docs/projects.md`](docs/projects.md) | Both projects + how they connect |
-| [`docs/ci.md`](docs/ci.md) | CI jobs and why a run can look red |
+| [`docs/ci.md`](docs/ci.md) | Security CI + agent-heuristic PR workflow |
 | [`docs/tooling.md`](docs/tooling.md) | Local scanners |
-| [`docs/demo-script.md`](docs/demo-script.md) | Stage timing |
 
 ```bash
 make docs-install && make docs-serve   # local docs at http://127.0.0.1:8000
@@ -41,11 +42,14 @@ Requires optional CLIs: [Semgrep](https://semgrep.dev/), [Trivy](https://trivy.d
 
 ```bash
 make scan          # tests + scanners → artifacts/security-summary.json
-make agent         # propose remediation + evidence (does not merge)
+make agent         # Ollama (llama3) briefing + remediation patches
+make agent-heuristic  # same loop without LLM
 # optional:
-make agent-apply   # write parameterized SQL fix into vuln-shop
+make agent-apply   # apply remediations into vuln-shop
 make demo-reset    # restore vulnerable files from git
 ```
+
+Requires [Ollama](https://ollama.com/) running locally with `llama3` (or pass `--model`). See [docs/concepts/llm.md](docs/concepts/llm.md).
 
 ### What the audience should see
 
