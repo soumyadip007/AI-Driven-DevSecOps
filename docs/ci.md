@@ -55,4 +55,28 @@ Branch: `agent/heuristic-remediation`
 
 The PR body states it was **created by CI** via the heuristic agent. Humans still approve the merge.
 
+### Required: allow Actions to open PRs
+
+If the job fails with:
+
+> `GitHub Actions is not permitted to create or approve pull requests`
+
+do **one** of the following:
+
+#### Option A (recommended for the demo)
+
+1. Open [Settings → Actions → General](https://github.com/soumyadip007/AI-Driven-DevSecOps/settings/actions)
+2. Under **Workflow permissions**:
+   - Select **Read and write permissions**
+   - Check **Allow GitHub Actions to create and approve pull requests**
+3. Save, then re-run **security-agent-pr**
+
+#### Option B (PAT)
+
+1. Create a classic Personal Access Token with `repo` scope  
+2. Add it as repository secret `AGENT_PR_TOKEN`  
+3. Re-run the workflow (it prefers this secret over `GITHUB_TOKEN`)
+
+> Note: the branch push can succeed even when PR creation is blocked. After enabling the setting, re-run — the PR will be created against `agent/heuristic-remediation`.
+
 For the live LLM briefing on stage, use local `make agent` (Ollama). See [demo walkthrough](demo-walkthrough.md).

@@ -1,7 +1,7 @@
 name: security-agent-pr
 
 # Creates a remediation PR using the heuristic agent (no LLM).
-# Mentioned in the PR body: opened by CI via make agent-heuristic.
+# Requires repo setting OR a PAT — see docs/ci.md § Remediation PR workflow.
 
 on:
   workflow_dispatch:
@@ -70,11 +70,16 @@ jobs:
           chmod +x scripts/ci-agent-heuristic.sh
           bash scripts/ci-agent-heuristic.sh
 
+      - name: Notice about PR permissions
+        run: |
+          echo "::notice::PR create needs: Settings → Actions → General → Allow GitHub Actions to create and approve pull requests — OR secret AGENT_PR_TOKEN (repo PAT). See docs/ci.md"
+
       - name: Create or update remediation pull request
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Prefer PAT secret if set — GITHUB_TOKEN needs the repo Actions setting enabled.
+          token: ${{ secrets.AGENT_PR_TOKEN != '' && secrets.AGENT_PR_TOKEN || secrets.GITHUB_TOKEN }}
           commit-message: |
             fix(vuln-shop): apply heuristic security-agent remediations
 
@@ -88,14 +93,30 @@ jobs:
             apps/vuln-shop/package.json
             apps/vuln-shop/package-lock.json
             apps/vuln-shop/Dockerfile
-            reports/security-agent/*
+            reports/security-agent/**
+
+      - name: Explain PR permission failure
+        if: failure() && steps.cpr.outcome == 'failure'
+        run: |
+          echo "::error::PR creation failed. Most common cause: GitHub Actions is not allowed to create PRs."
+          echo ""
+          echo "Fix (pick one):"
+          echo "1) Repo Settings → Actions → General → Workflow permissions"
+          echo "   - Read and write permissions"
+          echo "   - ☑ Allow GitHub Actions to create and approve pull requests"
+          echo "2) Add repository secret AGENT_PR_TOKEN = classic PAT with 'repo' scope"
+          echo "   then re-run this workflow."
+          echo ""
+          echo "Settings URL: https://github.com/${{ github.repository }}/settings/actions"
+          exit 1
 
       - name: Summary
+        if: always()
         run: |
           echo "### Security agent PR" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Mode: **heuristic** (\`make agent-heuristic\` / \`--llm none\`)" >> "$GITHUB_STEP_SUMMARY"
-          echo "- PR: ${{ steps.cpr.outputs.pull-request-url || 'no changes / existing' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Branch: \`agent/heuristic-remediation\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- PR: ${{ steps.cpr.outputs.pull-request-url || 'not created yet' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Branch: \`agent/heuristic-remediation\` (push may succeed even if PR create is blocked)" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "This job is the CI path that opens the remediation PR for the CRACCON demo." >> "$GITHUB_STEP_SUMMARY"
+          echo "If PR create failed: enable Actions → allow creating PRs, or set \`AGENT_PR_TOKEN\`." >> "$GITHUB_STEP_SUMMARY"

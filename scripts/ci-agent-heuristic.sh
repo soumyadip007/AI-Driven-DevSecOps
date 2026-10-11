@@ -28,12 +28,32 @@ echo "==> Refresh lockfile after lodash bump (if any)"
 )
 
 echo "==> Copy evidence into reports/ (committed on the PR branch)"
-cp -f agents/security-agent/out/evidence.md reports/security-agent/evidence.md
-cp -f agents/security-agent/out/plan.json reports/security-agent/plan.json
-cp -f agents/security-agent/out/correlation.json reports/security-agent/correlation.json
-cp -f agents/security-agent/out/remediations.json reports/security-agent/remediations.json
-cp -f agents/security-agent/out/audit.jsonl reports/security-agent/audit.jsonl
+# Prefer timestamped archive if present; fall back to out/
+SRC="agents/security-agent/out"
+if [[ -L agents/security-agent/out/runs/latest || -d agents/security-agent/out/runs/latest ]]; then
+  SRC="agents/security-agent/out/runs/latest"
+elif [[ -f agents/security-agent/out/runs/latest.txt ]]; then
+  SRC="agents/security-agent/out/runs/$(cat agents/security-agent/out/runs/latest.txt | tr -d '\n')"
+fi
+echo "    Evidence source: $SRC"
+
+cp -f "$SRC/evidence.md" reports/security-agent/evidence.md
+cp -f "$SRC/plan.json" reports/security-agent/plan.json
+cp -f "$SRC/correlation.json" reports/security-agent/correlation.json
+cp -f "$SRC/remediations.json" reports/security-agent/remediations.json
+cp -f "$SRC/audit.jsonl" reports/security-agent/audit.jsonl
 cp -f artifacts/security-summary.json reports/security-agent/security-summary.json
+# Preserve which agent run this PR came from
+if [[ -f "$SRC/README.txt" ]]; then
+  cp -f "$SRC/README.txt" reports/security-agent/agent-run.txt
+fi
+# Also copy a dated snapshot into reports for distinction in the PR
+STAMP="$(date +%Y%m%d-%H%M%S)"
+mkdir -p "reports/security-agent/runs/$STAMP"
+cp -f reports/security-agent/*.md reports/security-agent/*.json reports/security-agent/*.jsonl reports/security-agent/*.txt \
+  "reports/security-agent/runs/$STAMP/" 2>/dev/null || true
+ln -sfn "$STAMP" reports/security-agent/runs/latest || true
+echo "    PR report archive: reports/security-agent/runs/$STAMP"
 
 # PR body for create-pull-request / gh
 cat > reports/security-agent/pr-body.md <<'EOF'

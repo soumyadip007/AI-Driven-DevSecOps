@@ -78,7 +78,10 @@ GitHub Actions workflows:
 
 `vuln-shop` is intentionally insecure: findings show up in the `security-summary` artifact (see [docs/ci.md](docs/ci.md)).  
 
-**One-time Pages setup:** Repo → Settings → Pages → Source: **GitHub Actions**.
+**One-time GitHub setup**
+
+1. **Pages:** Settings → Pages → Source: **GitHub Actions**  
+2. **Agent PR:** Settings → Actions → General → Workflow permissions → enable **Allow GitHub Actions to create and approve pull requests** (or add secret `AGENT_PR_TOKEN`)
 
 ## Layout
 

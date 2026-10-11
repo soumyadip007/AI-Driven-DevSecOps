@@ -48,3 +48,11 @@ After a successful Ollama run, show:
 1. `agents/security-agent/out/llm-briefing.md` — model narrative  
 2. `agents/security-agent/out/evidence.md` — briefing + finding IDs + patches  
 3. `agents/security-agent/out/audit.jsonl` — includes `llm_chat` lines  
+
+Each run is also archived:
+
+```text
+agents/security-agent/out/                    # latest (overwrite)
+agents/security-agent/out/runs/20261012-010530/  # timestamped snapshot
+agents/security-agent/out/runs/latest -> …
+```

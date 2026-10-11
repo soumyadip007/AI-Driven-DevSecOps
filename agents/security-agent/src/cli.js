@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const path = require("node:path");
 const { runAgent } = require("./agent");
+const { archiveAgentRun } = require("./archive");
 
 function parseArgs(argv) {
   const args = {
@@ -63,6 +64,13 @@ Env:
     llmBaseUrl: args.ollamaHost,
   });
 
+  const archived = archiveAgentRun(result.outDir, {
+    llm: result.llm && (result.llm.used ? result.llm.provider : args.llm),
+    model: result.llm && result.llm.model ? result.llm.model : args.model,
+    hero: result.hero && result.hero.finding_id,
+    apply: args.apply,
+  });
+
   console.log("Security agent finished.");
   console.log(`  Hero finding: ${result.hero ? result.hero.finding_id : "none"}`);
   console.log(`  Remediations: ${result.remediationCount}`);
@@ -79,6 +87,8 @@ Env:
     console.log(`  Briefing:     ${path.join(result.outDir, "llm-briefing.md")}`);
   }
   console.log(`  Audit log:    ${result.auditFile}`);
+  console.log(`  Run archive:  ${archived.runDir}`);
+  console.log(`  Latest link:  ${path.join(result.outDir, "runs", "latest")}`);
   if (result.validation && !result.validation.skipped) {
     console.log(`  Tests:        exit ${result.validation.status}`);
   }
