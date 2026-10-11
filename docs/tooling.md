@@ -30,7 +30,15 @@ make scan
 bash scripts/run-local-scans.sh
 ```
 
-If a CLI is missing, or Trivy’s vulnerability DB download times out, the script falls back to `fixtures/findings/` so the agent demo still works offline / on flaky Wi‑Fi.
+Outputs:
+
+| Path | Purpose |
+|------|---------|
+| `artifacts/*.json` | Latest results for `make agent` |
+| `artifacts/runs/<YYYYMMDD-HHMMSS>/` | Timestamped archive of that run |
+| `artifacts/runs/latest` | Symlink to the newest archive |
+
+If a CLI is missing, or Trivy fails, the script falls back to `fixtures/findings/` so the agent demo still works offline / on flaky Wi‑Fi.
 
 **Note:** The first Trivy run downloads a large DB. If that hangs, kill it and re-run `make scan` — fixtures cover SCA until the DB is cached.
 

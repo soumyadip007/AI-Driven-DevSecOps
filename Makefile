@@ -6,7 +6,7 @@ help:
 	@echo "Targets:"
 	@echo "  make install       Install vuln-shop deps"
 	@echo "  make test          Run vuln-shop unit tests"
-	@echo "  make scan          Run local scanners + aggregate summary"
+	@echo "  make scan          Run scanners → artifacts/ + artifacts/runs/<timestamp>/"
 	@echo "  make agent         Run agent with local Ollama (llama3)"
 	@echo "  make agent-heuristic  Run agent without LLM"
 	@echo "  make agent-apply   Run agent+Ollama and apply remediations"
