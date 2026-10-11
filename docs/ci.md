@@ -1,0 +1,34 @@
+# CI explained
+
+Workflow: [`.github/workflows/security.yml`](https://github.com/soumyadip007/AI-Driven-DevSecOps/blob/main/.github/workflows/security.yml)
+
+## Jobs
+
+| Job | Type | What it does |
+|-----|------|--------------|
+| `unit-tests` | Functional | Runs `vuln-shop` tests (can be green while security is not) |
+| `sast-semgrep` | **SAST** | Semgrep custom rules on `apps/vuln-shop` |
+| `sca-trivy` | **SCA** | Trivy filesystem scan for vulnerable deps |
+| `policy-conftest` | **Policy** | Conftest/OPA rules on the Dockerfile |
+| `aggregate-security-summary` | Evidence | Builds `security-summary.json` for the agent |
+| `demo-findings-report` | Demo signal | Warns when intentional findings remain |
+
+## Why an earlier run looked “broken”
+
+On [run #1](https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/runs/38136665488):
+
+1. **Trivy action tag was invalid** (`aquasecurity/trivy-action@0.28.0` could not be resolved) — tooling bug, now pinned to `0.35.0`.
+2. **Semgrep / Conftest exited non-zero** because they correctly found seeded issues. That looked like a pipeline failure even when the tools worked.
+
+Current design:
+
+- Scanner jobs **collect** findings and stay green when the tool itself succeeds.
+- Findings are visible in the **`security-summary` artifact** and a warning on `demo-findings-report`.
+- That matches the talk: controls provide evidence; the agent (and humans) act on it.
+
+## Artifacts to download after a run
+
+- `semgrep-json`
+- `trivy-json`
+- `conftest-json`
+- `security-summary` ← feed this to `make agent`

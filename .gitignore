@@ -1,3 +1,7 @@
+# MkDocs
+site/
+.venv-docs/
+
 # Demo outputs
 artifacts/
 agents/security-agent/out/

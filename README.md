@@ -13,11 +13,20 @@ AI orchestrates and explains; deterministic scanners provide evidence; humans ap
 | `policies/` | Semgrep, Conftest, Gitleaks config |
 | `scripts/` | Local scan harness + `security-summary.json` aggregator |
 
-**Full explanation** (what each project does, similarities, differences, and how they connect):
+**Docs site (MkDocs):** after GitHub Pages is enabled →  
+`https://soumyadip007.github.io/AI-Driven-DevSecOps/`
 
-→ [`docs/projects.md`](docs/projects.md)
+| Doc | Topic |
+|-----|--------|
+| [`docs/concepts/glossary.md`](docs/concepts/glossary.md) | What **SAST**, **SCA**, **Semgrep**, **Trivy**, **Conftest**, **SBOM** mean |
+| [`docs/projects.md`](docs/projects.md) | Both projects + how they connect |
+| [`docs/ci.md`](docs/ci.md) | CI jobs and why a run can look red |
+| [`docs/tooling.md`](docs/tooling.md) | Local scanners |
+| [`docs/demo-script.md`](docs/demo-script.md) | Stage timing |
 
-Also: [`docs/tooling.md`](docs/tooling.md) · [`docs/demo-script.md`](docs/demo-script.md) · [`docs/architecture.md`](docs/architecture.md)
+```bash
+make docs-install && make docs-serve   # local docs at http://127.0.0.1:8000
+```
 
 ## Quick start
 
@@ -58,11 +67,14 @@ Fake secret examples live only in commented `.demo-secret.example` — do not ad
 
 ## CI
 
-GitHub Actions workflow: `.github/workflows/security.yml`
+GitHub Actions workflows:
 
-- unit tests  
-- Semgrep / Trivy / Conftest  
-- aggregate → `security-summary` artifact  
+- `.github/workflows/security.yml` — unit tests, SAST (Semgrep), SCA (Trivy), policy (Conftest), aggregate summary  
+- `.github/workflows/docs.yml` — build & deploy MkDocs to GitHub Pages  
+
+`vuln-shop` is intentionally insecure: findings show up in the `security-summary` artifact (see [docs/ci.md](docs/ci.md)).  
+
+**One-time Pages setup:** Repo → Settings → Pages → Source: **GitHub Actions**.
 
 ## Layout
 

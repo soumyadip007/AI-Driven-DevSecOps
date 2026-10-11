@@ -1,0 +1,68 @@
+site_name: AI-Driven DevSecOps
+site_description: CRACCON'26 demo — security as a continuous feedback loop
+site_url: https://soumyadip007.github.io/AI-Driven-DevSecOps/
+repo_url: https://github.com/soumyadip007/AI-Driven-DevSecOps
+repo_name: soumyadip007/AI-Driven-DevSecOps
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Concepts:
+      - Glossary (SAST, SCA, …): concepts/glossary.md
+      - Security loop: concepts/security-loop.md
+  - Projects:
+      - Overview & connection: projects.md
+      - Architecture: architecture.md
+  - Demo:
+      - Tooling: tooling.md
+      - Stage script: demo-script.md
+      - CI explained: ci.md
+  - Plan: plan.md

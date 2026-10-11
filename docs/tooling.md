@@ -2,6 +2,8 @@
 
 These CLIs power `make scan`. CI uses the same classes of tools in GitHub Actions.
 
+New to the acronyms? See the [glossary](concepts/glossary.md) (SAST, SCA, Semgrep, Trivy, Conftest, SBOM, …).
+
 ## Install (macOS)
 
 ```bash

@@ -211,6 +211,7 @@ Offline fallback (no scanner CLIs): copy `fixtures/findings/*` into `artifacts/`
 2. **Evidence** — CI checks or `security-summary.json` + agent `audit.jsonl`  
 3. **Remediation** — `products.remediated.js`, `package.json.remediated`, `Dockerfile.remediated` + human approval  
 
-Minute-by-minute script: [`demo-script.md`](./demo-script.md)  
-Diagram notes: [`architecture.md`](./architecture.md)  
-Delivery plan: [`../plan.md`](../plan.md)
+Minute-by-minute script: [demo-script.md](demo-script.md)  
+Diagram notes: [architecture.md](architecture.md)  
+Delivery plan: [plan.md](plan.md)  
+Glossary (SAST / SCA / …): [concepts/glossary.md](concepts/glossary.md)
