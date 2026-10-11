@@ -1,0 +1,142 @@
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/vuln-shop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/vuln-shop/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  sast-semgrep:
+    name: sast-semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Semgrep
+        run: |
+          mkdir -p artifacts
+          semgrep scan \
+            --config policies/semgrep \
+            --json \
+            --output artifacts/semgrep.json \
+            apps/vuln-shop || true
+          # Fail the job if any ERROR findings exist
+          python3 - <<'PY'
+          import json, sys
+          data = json.load(open("artifacts/semgrep.json"))
+          results = data.get("results", [])
+          print(f"Semgrep findings: {len(results)}")
+          for r in results:
+              print("-", r.get("check_id"), r.get("path"), r.get("start", {}).get("line"))
+          sys.exit(1 if results else 0)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-json
+          path: artifacts/semgrep.json
+
+  sca-trivy:
+    name: sca-trivy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install npm deps for lockfile scan
+        working-directory: apps/vuln-shop
+        run: |
+          npm ci
+      - name: Prepare artifacts dir
+        run: mkdir -p artifacts
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: apps/vuln-shop
+          format: json
+          output: artifacts/trivy.json
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-json
+          path: artifacts/trivy.json
+
+  policy-conftest:
+    name: policy-conftest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Conftest CLI
+        run: |
+          curl -sL https://github.com/open-policy-agent/conftest/releases/download/v0.56.0/conftest_0.56.0_Linux_x86_64.tar.gz | tar xz
+          sudo mv conftest /usr/local/bin/
+          conftest --version
+      - name: Validate Dockerfile policies
+        run: |
+          mkdir -p artifacts
+          set +e
+          conftest test apps/vuln-shop/Dockerfile \
+            --policy policies/conftest \
+            --output json > artifacts/conftest.json
+          code=$?
+          conftest test apps/vuln-shop/Dockerfile \
+            --policy policies/conftest | tee artifacts/conftest.txt
+          exit $code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conftest-json
+          path: |
+            artifacts/conftest.json
+            artifacts/conftest.txt
+
+  aggregate:
+    name: aggregate-security-summary
+    runs-on: ubuntu-latest
+    needs: [sast-semgrep, sca-trivy, policy-conftest]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: downloaded
+      - name: Collect artifacts
+        run: |
+          mkdir -p artifacts
+          find downloaded -type f -print
+          cp downloaded/semgrep-json/semgrep.json artifacts/ 2>/dev/null || true
+          cp downloaded/trivy-json/trivy.json artifacts/ 2>/dev/null || true
+          cp downloaded/conftest-json/conftest.json artifacts/ 2>/dev/null || true
+          cp downloaded/conftest-json/conftest.txt artifacts/ 2>/dev/null || true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Aggregate summary
+        run: node scripts/aggregate-security-summary.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: security-summary
+          path: artifacts/security-summary.json
