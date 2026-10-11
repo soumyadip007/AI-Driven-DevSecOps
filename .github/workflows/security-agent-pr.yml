@@ -1,0 +1,101 @@
+name: security-agent-pr
+
+# Creates a remediation PR using the heuristic agent (no LLM).
+# Mentioned in the PR body: opened by CI via make agent-heuristic.
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [security]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: security-agent-pr
+  cancel-in-progress: true
+
+jobs:
+  agent-heuristic-pr:
+    name: agent-heuristic → PR
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' ||
+       github.event.workflow_run.conclusion == 'failure')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/vuln-shop/package-lock.json
+
+      - name: Install vuln-shop deps
+        working-directory: apps/vuln-shop
+        run: npm ci
+
+      - name: Try download security-summary from security workflow
+        if: github.event_name == 'workflow_run'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: security-summary
+          path: artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Prepare summary (fixture fallback)
+        run: |
+          mkdir -p artifacts
+          if [[ ! -s artifacts/security-summary.json ]]; then
+            echo "Using fixtures/findings → security-summary.json"
+            cp fixtures/findings/* artifacts/ || true
+            node scripts/aggregate-security-summary.js
+          else
+            echo "Using downloaded security-summary.json"
+            ls -la artifacts/
+          fi
+
+      - name: Run agent-heuristic and stage reports
+        run: |
+          chmod +x scripts/ci-agent-heuristic.sh
+          bash scripts/ci-agent-heuristic.sh
+
+      - name: Create or update remediation pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            fix(vuln-shop): apply heuristic security-agent remediations
+
+            Opened by CI (make agent-heuristic / --llm none). Human merge approval required.
+          title: "fix(security): agent-heuristic remediations for vuln-shop"
+          body-path: reports/security-agent/pr-body.md
+          branch: agent/heuristic-remediation
+          delete-branch: false
+          add-paths: |
+            apps/vuln-shop/src/routes/products.js
+            apps/vuln-shop/package.json
+            apps/vuln-shop/package-lock.json
+            apps/vuln-shop/Dockerfile
+            reports/security-agent/*
+
+      - name: Summary
+        run: |
+          echo "### Security agent PR" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: **heuristic** (\`make agent-heuristic\` / \`--llm none\`)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- PR: ${{ steps.cpr.outputs.pull-request-url || 'no changes / existing' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Branch: \`agent/heuristic-remediation\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "This job is the CI path that opens the remediation PR for the CRACCON demo." >> "$GITHUB_STEP_SUMMARY"

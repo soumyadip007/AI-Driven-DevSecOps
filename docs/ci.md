@@ -32,3 +32,27 @@ Current design:
 - `trivy-json`
 - `conftest-json`
 - `security-summary` ← feed this to `make agent`
+
+## Remediation PR workflow (`security-agent-pr`)
+
+Workflow: [`.github/workflows/security-agent-pr.yml`](https://github.com/soumyadip007/AI-Driven-DevSecOps/blob/main/.github/workflows/security-agent-pr.yml)
+
+| Trigger | Behavior |
+|---------|----------|
+| After **security** workflow finishes on `main` | Runs heuristic agent and opens/updates a PR |
+| Manual **Run workflow** | Same |
+
+What it runs (no Ollama in CI):
+
+```bash
+# scripts/ci-agent-heuristic.sh ≈
+make agent-heuristic   # --llm none
+# then --apply remediations + reports/security-agent/*
+```
+
+PR title: `fix(security): agent-heuristic remediations for vuln-shop`  
+Branch: `agent/heuristic-remediation`  
+
+The PR body states it was **created by CI** via the heuristic agent. Humans still approve the merge.
+
+For the live LLM briefing on stage, use local `make agent` (Ollama). See [demo walkthrough](demo-walkthrough.md).
