@@ -1,0 +1,21 @@
+[
+  {
+    "filename": "apps/vuln-shop/Dockerfile",
+    "namespace": "main",
+    "successes": 1,
+    "failures": [
+      {
+        "msg": "Dockerfile must include HEALTHCHECK (demo policy)",
+        "metadata": {
+          "query": "data.main.deny"
+        }
+      },
+      {
+        "msg": "Dockerfile must set a non-root USER (demo policy)",
+        "metadata": {
+          "query": "data.main.deny"
+        }
+      }
+    ]
+  }
+]

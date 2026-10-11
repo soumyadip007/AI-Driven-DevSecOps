@@ -1,0 +1,27 @@
+{
+  "Results": [
+    {
+      "Target": "apps/vuln-shop/package-lock.json",
+      "Class": "lang-pkgs",
+      "Type": "npm",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2021-23337",
+          "PkgName": "lodash",
+          "InstalledVersion": "4.17.19",
+          "FixedVersion": "4.17.21",
+          "Severity": "HIGH",
+          "Title": "lodash: Command Injection via template"
+        },
+        {
+          "VulnerabilityID": "CVE-2020-28500",
+          "PkgName": "lodash",
+          "InstalledVersion": "4.17.19",
+          "FixedVersion": "4.17.21",
+          "Severity": "HIGH",
+          "Title": "lodash: ReDoS via toNumber"
+        }
+      ]
+    }
+  ]
+}
