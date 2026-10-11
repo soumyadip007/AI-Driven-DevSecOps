@@ -1,0 +1,26 @@
+rules:
+  - id: vuln-shop.sqlite-string-concat
+    languages: [javascript]
+    severity: ERROR
+    message: >
+      Untrusted input is concatenated into a SQL string. Use parameterized
+      queries (bound parameters) instead. Demo finding for CRACCON'26.
+    pattern-either:
+      - pattern: |
+          $SQL = `...${...}...`
+          ...
+          db.prepare($SQL)
+      - pattern: |
+          $SQL = `...${...}...`
+          ...
+          $DB.prepare($SQL)
+      - pattern-regex: prepare\(`[^`]*\$\{
+    paths:
+      include:
+        - "**/apps/vuln-shop/**"
+    metadata:
+      category: security
+      cwe: "CWE-89"
+      likelihood: HIGH
+      impact: HIGH
+      demo: craccon26
