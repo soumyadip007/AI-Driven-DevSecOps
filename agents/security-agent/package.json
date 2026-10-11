@@ -1,0 +1,15 @@
+{
+  "name": "security-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bounded security agent demo (Observe→Escalate) for CRACCON'26",
+  "main": "src/cli.js",
+  "scripts": {
+    "start": "node src/cli.js",
+    "observe": "node src/cli.js --phase observe",
+    "run": "node src/cli.js --phase all"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
