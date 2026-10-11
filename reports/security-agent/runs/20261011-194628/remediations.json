@@ -1,0 +1,24 @@
+[
+  {
+    "kind": "sast",
+    "outName": "products.remediated.js",
+    "targetRel": "apps/vuln-shop/src/routes/products.js",
+    "summary": "Parameterized LIKE query for /api/products/search",
+    "bytes": 1420
+  },
+  {
+    "kind": "sca",
+    "outName": "package.json.remediated",
+    "targetRel": "apps/vuln-shop/package.json",
+    "summary": "lodash 4.17.19 → 4.17.21",
+    "followUp": "Run npm install in apps/vuln-shop to refresh package-lock.json",
+    "bytes": 515
+  },
+  {
+    "kind": "policy",
+    "outName": "Dockerfile.remediated",
+    "targetRel": "apps/vuln-shop/Dockerfile",
+    "summary": "Non-root USER app + HEALTHCHECK on /health",
+    "bytes": 536
+  }
+]
