@@ -1,4 +1,4 @@
-.PHONY: install test scan agent agent-heuristic agent-apply demo-reset docs docs-serve docs-install sync-outputs help
+.PHONY: install test scan agent agent-heuristic agent-apply demo-reset e2e-local docs docs-serve docs-install sync-outputs help
 
 ROOT := $(abspath .)
 
@@ -11,6 +11,7 @@ help:
 	@echo "  make agent-heuristic  Agent without LLM"
 	@echo "  make agent-apply      Agent+Ollama and apply remediations"
 	@echo "  make sync-outputs     Mirror world/agent into docs/outputs for Pages"
+	@echo "  make e2e-local        Local scan → agent → docs smoke test"
 	@echo "  make demo-reset       Restore vulnerable demo files from git"
 	@echo "  make docs-install     Install MkDocs deps"
 	@echo "  make docs             Build docs site into ./site"
@@ -50,6 +51,9 @@ demo-reset:
 	git checkout -- apps/vuln-shop/src/routes/products.js apps/vuln-shop/Dockerfile apps/vuln-shop/package.json
 	@echo "Restored vulnerable demo files (if tracked)."
 	@echo "If package-lock changed after a lodash bump, also run: git checkout -- apps/vuln-shop/package-lock.json"
+
+e2e-local:
+	bash scripts/e2e-local.sh
 
 docs-install:
 	python3 -m venv .venv-docs
