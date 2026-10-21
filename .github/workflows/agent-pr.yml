@@ -1,0 +1,30 @@
+# ORPHAN PLACEHOLDER — this file path had a brief rename history.
+# GitHub keeps a second "Agent PR" entry until this workflow is DISABLED.
+#
+# After you disable it in the Actions UI (⋯ → Disable workflow),
+# this file can be deleted again. The real workflow is:
+#   .github/workflows/security-agent-pr.yml  (name: Agent PR)
+
+name: "OBSOLETE — disable this (old agent-pr.yml)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ack:
+        description: "Type disable-me (this workflow should be disabled in the UI)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  obsolete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Point to the real Agent PR workflow
+        run: |
+          echo "::error::This workflow is obsolete (leftover from a filename rename)."
+          echo "Use: https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/security-agent-pr.yml"
+          echo "Then disable THIS workflow: Actions → OBSOLETE… → ⋯ → Disable workflow"
+          exit 1

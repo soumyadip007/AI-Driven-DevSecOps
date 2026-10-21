@@ -32,6 +32,17 @@ https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/security-a
 1. Branch **`main`**
 2. **Run workflow**
 
+### Why two Agent PR entries appeared
+
+GitHub keeps a workflow record after a **filename rename**.  
+`agent-pr.yml` was briefly used, then restored as `security-agent-pr.yml`, so Actions listed two workflows.
+
+**One-time fix:** open  
+https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/agent-pr.yml  
+confirm the title is **`OBSOLETE — disable this (old agent-pr.yml)`**, then **⋯ → Disable workflow**.
+
+Keep using only `security-agent-pr.yml`.
+
 ### Allow Actions to open PRs
 
 If PR create fails with *not permitted*:
