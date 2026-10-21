@@ -3,13 +3,7 @@ const _ = require("lodash");
 
 /**
  * Product routes for the demo shop.
- *
- * INTENTIONAL DEMO VULNERABILITY (SAST hero finding):
- * GET /api/products/search concatenates untrusted input into SQL.
- * Semgrep rule: policies/semgrep/sql-injection.yaml
- *
- * Secure remediation (see fixtures/golden/products.search.secure.js):
- * use a parameterized query with bound parameters.
+ * Remediation: parameterized LIKE query (no string-concat SQL).
  */
 function createProductRouter(db) {
   const router = express.Router();
@@ -32,10 +26,13 @@ function createProductRouter(db) {
       return res.status(400).json({ error: "query too long" });
     }
 
-    // DEMO ONLY — do not copy this pattern.
-    // Untrusted input is concatenated into the SQL string (SQL injection).
-    const sql = `SELECT id, name, price_cents, category FROM products WHERE name LIKE '%${q}%' OR category LIKE '%${q}%'`;
-    const products = db.prepare(sql).all();
+    const sql = `
+      SELECT id, name, price_cents, category
+      FROM products
+      WHERE name LIKE ? OR category LIKE ?
+    `;
+    const pattern = `%${q}%`;
+    const products = db.prepare(sql).all(pattern, pattern);
     res.json({ query: q, products });
   });
 

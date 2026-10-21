@@ -1,0 +1,10 @@
+Agent run archive
+=================
+timestamp: 20261021-152445
+created:   2026-10-21T15:24:45.845Z
+llm:       none
+model:     llama3
+hero:      SEMGREP-policies.semgrep.vuln-shop.sqlite-string-concat-1
+apply:     yes
+
+Latest outputs also remain in artifacts/agent/ for the current demo.

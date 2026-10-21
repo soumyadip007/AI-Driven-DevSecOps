@@ -1,0 +1,9 @@
+{
+  "steps": [
+    "Remediate SQL injection with parameterized product search query",
+    "Bump lodash to 4.17.21 in package.json (SCA)",
+    "Harden Dockerfile: non-root USER + HEALTHCHECK (policy)",
+    "Run unit tests",
+    "Present evidence for human PR approval (no auto-merge)"
+  ]
+}
