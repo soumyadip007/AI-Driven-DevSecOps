@@ -5,7 +5,7 @@ Two workflows, two artifact buckets.
 | Workflow file | Display name | Writes | Purpose |
 |---------------|--------------|--------|---------|
 | `.github/workflows/security.yml` | **Security CI** | `artifacts/world/` | Vulnerability analysis (SAST/SCA/policy) |
-| `.github/workflows/agent-pr.yml` | **Agent PR** | `artifacts/agent/` + remediation PR | Heuristic agent remediations |
+| `.github/workflows/security-agent-pr.yml` | **Agent PR** | `artifacts/agent/` + remediation PR | Heuristic agent remediations |
 | `.github/workflows/docs.yml` | **docs** | GitHub Pages | Docs site including [/outputs/](https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/) |
 
 ## World vs Agent
@@ -36,17 +36,11 @@ docs/outputs/      ← mirrored for the docs site (clickable links)
 
 ### How to get the “Run workflow” button
 
-1. Open: https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/agent-pr.yml  
-2. Select workflow name **Agent PR** (not an old disabled `security-agent-pr` entry).  
-3. Branch dropdown: **`main`**.  
-4. Click **Run workflow**.
+1. Open: https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/security-agent-pr.yml  
+2. Branch dropdown: **`main`**.  
+3. Click **Run workflow** (you should see inputs: `note`, `use_fixtures`).
 
-If the button is missing:
-
-- You must be on the workflow file that exists on **`main`** (this repo uses `.github/workflows/agent-pr.yml`).  
-- Refresh after the latest push lands on `main`.  
-- Under Actions → manage workflows, ensure **Agent PR** is **enabled** (not disabled after the rename).  
-- Direct link above is the reliable entry point.
+Display name in the sidebar is **Agent PR**; the file path stays `security-agent-pr.yml` so this URL keeps working.
 
 ```bash
 # scripts/ci-agent-heuristic.sh ≈

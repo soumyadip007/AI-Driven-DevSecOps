@@ -53,7 +53,7 @@ Legacy paths (`artifacts/*.json`, `agents/security-agent/out/`) become thin redi
 | Workflow | Display name | Uploaded artifact names |
 |----------|--------------|-------------------------|
 | `security.yml` | **Security CI** | `world-security-summary`, `world-semgrep`, `world-trivy`, `world-conftest` |
-| `agent-pr.yml` | **Agent PR** | `agent-reports` (from `artifacts/agent` + `reports/security-agent`) |
+| `security-agent-pr.yml` | **Agent PR** | `agent-reports` (from `artifacts/agent` + `reports/security-agent`) |
 | `docs.yml` | **docs** | Site includes `docs/outputs/**` |
 
 ## Docs site access

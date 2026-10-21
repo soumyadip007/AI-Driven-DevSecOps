@@ -1,8 +1,8 @@
 name: Agent PR
 
+# File path: .github/workflows/security-agent-pr.yml  (keeps Actions URL stable)
+# Display name: Agent PR
 # Manual "Run workflow" + auto after Security CI.
-# If you do not see Run workflow: open this file's workflow (name Agent PR),
-# not the old disabled "security-agent-pr" entry.
 
 on:
   # Explicit inputs force the Actions UI to show the Run workflow button
