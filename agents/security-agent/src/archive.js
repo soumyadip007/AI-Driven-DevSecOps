@@ -41,7 +41,7 @@ function archiveAgentRun(outDir, meta = {}) {
     `hero:      ${meta.hero || "n/a"}`,
     `apply:     ${meta.apply ? "yes" : "no"}`,
     "",
-    "Latest outputs also remain in agents/security-agent/out/ for the current demo.",
+    "Latest outputs also remain in artifacts/agent/ for the current demo.",
     "",
   ].join("\n");
   fs.writeFileSync(path.join(runDir, "README.txt"), readme);

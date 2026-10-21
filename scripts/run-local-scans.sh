@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Local scanner harness — produces artifacts/ for the security agent
-# and archives a full copy under artifacts/runs/<timestamp>/.
+# Local scanner harness — writes into artifacts/world/ (vulnerability analysis)
+# and archives under artifacts/world/runs/<timestamp>/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-ART="$ROOT/artifacts"
+WORLD="$ROOT/artifacts/world"
 FIX="$ROOT/fixtures/findings"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-RUN_DIR="$ART/runs/$STAMP"
+RUN_DIR="$WORLD/runs/$STAMP"
 
-mkdir -p "$ART" "$RUN_DIR"
+mkdir -p "$WORLD" "$RUN_DIR"
 
 copy_fixture() {
   local name="$1"
   if [[ -f "$FIX/$name" ]]; then
-    cp "$FIX/$name" "$ART/$name"
+    cp "$FIX/$name" "$WORLD/$name"
     echo "    (used fixture: fixtures/findings/$name)"
   else
     echo "    (no fixture available for $name)"
@@ -22,8 +22,6 @@ copy_fixture() {
 }
 
 run_trivy() {
-  # macOS often has neither GNU timeout nor gtimeout — call trivy directly.
-  # With set -u, an empty array TIMER=() + "${TIMER[@]}" would crash.
   local out="$1"
   local target="$2"
   if command -v gtimeout >/dev/null 2>&1; then
@@ -52,9 +50,9 @@ run_trivy() {
     "$target"
 }
 
-echo "==> Scan run: $STAMP"
+echo "==> World scan run: $STAMP"
 echo "    Archive: $RUN_DIR"
-echo "    Latest:  $ART (for make agent)"
+echo "    Latest:  $WORLD (Security CI / make scan)"
 
 echo "==> Unit tests"
 (
@@ -68,7 +66,7 @@ if command -v semgrep >/dev/null 2>&1; then
   semgrep scan \
     --config "$ROOT/policies/semgrep" \
     --json \
-    --output "$ART/semgrep.json" \
+    --output "$WORLD/semgrep.json" \
     "$ROOT/apps/vuln-shop" 2>&1 | tee "$RUN_DIR/semgrep.console.log"
   echo "Semgrep exit: $?"
   set -e
@@ -80,10 +78,10 @@ fi
 echo "==> Trivy (SCA)"
 if command -v trivy >/dev/null 2>&1; then
   set +e
-  run_trivy "$ART/trivy.json" "$ROOT/apps/vuln-shop"
+  run_trivy "$WORLD/trivy.json" "$ROOT/apps/vuln-shop"
   code=$?
   echo "Trivy exit: $code"
-  if [[ $code -ne 0 && $code -ne 1 ]] || [[ ! -s "$ART/trivy.json" ]]; then
+  if [[ $code -ne 0 && $code -ne 1 ]] || [[ ! -s "$WORLD/trivy.json" ]]; then
     echo "Trivy failed or timed out — falling back to fixture"
     copy_fixture trivy.json
   fi
@@ -98,9 +96,9 @@ if command -v conftest >/dev/null 2>&1; then
   set +e
   conftest test "$ROOT/apps/vuln-shop/Dockerfile" \
     --policy "$ROOT/policies/conftest" \
-    --output json > "$ART/conftest.json"
+    --output json > "$WORLD/conftest.json"
   conftest test "$ROOT/apps/vuln-shop/Dockerfile" \
-    --policy "$ROOT/policies/conftest" | tee "$ART/conftest.txt"
+    --policy "$ROOT/policies/conftest" | tee "$WORLD/conftest.txt"
   echo "Conftest exit: $?"
   set -e
 else
@@ -109,31 +107,35 @@ else
   copy_fixture conftest.txt
 fi
 
-echo "==> Aggregate security-summary.json"
-ARTIFACTS_DIR="$ART" node "$ROOT/scripts/aggregate-security-summary.js"
+echo "==> Aggregate security-summary.json → artifacts/world/"
+ARTIFACTS_DIR="$WORLD" node "$ROOT/scripts/aggregate-security-summary.js"
 
-# Archive a full snapshot of this run (timestamped folder)
 for f in semgrep.json trivy.json conftest.json conftest.txt security-summary.json; do
-  if [[ -f "$ART/$f" ]]; then
-    cp -f "$ART/$f" "$RUN_DIR/$f"
+  if [[ -f "$WORLD/$f" ]]; then
+    cp -f "$WORLD/$f" "$RUN_DIR/$f"
   fi
 done
 
 cat > "$RUN_DIR/README.txt" <<EOF
-Scan archive
-============
+World scan archive (vulnerability analysis)
+==========================================
 timestamp: $STAMP
 created:   $(date -Iseconds 2>/dev/null || date)
 host:      $(hostname 2>/dev/null || echo unknown)
 
-This folder is a snapshot of scanner outputs from make scan.
-The latest copies also live in artifacts/ for make agent.
+Scanner outputs for Security CI / make scan.
+Latest copies: artifacts/world/
+Agent reads:   artifacts/world/security-summary.json
 EOF
 
-# Pointer to newest run for convenience
-ln -sfn "$STAMP" "$ART/runs/latest"
+ln -sfn "$STAMP" "$WORLD/runs/latest"
+
+# Sync published docs snapshots (for GitHub Pages)
+if [[ -x "$ROOT/scripts/sync-docs-outputs.sh" ]] || [[ -f "$ROOT/scripts/sync-docs-outputs.sh" ]]; then
+  bash "$ROOT/scripts/sync-docs-outputs.sh" world || true
+fi
 
 echo "Done."
-echo "  Latest artifacts: $ART"
+echo "  World latest:     $WORLD"
 echo "  Timestamped run:  $RUN_DIR"
-echo "  Latest symlink:   $ART/runs/latest -> $STAMP"
+echo "  Latest symlink:   $WORLD/runs/latest -> $STAMP"

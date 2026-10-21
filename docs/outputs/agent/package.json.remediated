@@ -1,0 +1,21 @@
+{
+  "name": "vuln-shop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intentionally vulnerable demo shop API for AI-Driven DevSecOps (CRACCON'26)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/**/*.test.js",
+    "db:seed": "node src/db/seed.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.21.2",
+    "lodash": "4.17.21"
+  }
+}

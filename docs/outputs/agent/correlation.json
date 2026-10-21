@@ -1,0 +1,66 @@
+{
+  "hero": {
+    "finding_id": "SEMGREP-policies.semgrep.vuln-shop.sqlite-string-concat-1",
+    "tool": "semgrep",
+    "severity": "ERROR",
+    "rule_id": "policies.semgrep.vuln-shop.sqlite-string-concat",
+    "message": "Untrusted input is concatenated into a SQL string. Use parameterized queries (bound parameters) instead. Demo finding for CRACCON'26.\n",
+    "filepath": "/Users/souchowd/Desktop/Personal/AI-Driven-DevSecOps/apps/vuln-shop/src/routes/products.js",
+    "line": 37,
+    "category": "sast"
+  },
+  "supporting": [
+    {
+      "finding_id": "TRIVY-CVE-2021-23337-1",
+      "tool": "trivy",
+      "severity": "HIGH",
+      "rule_id": "CVE-2021-23337",
+      "message": "lodash@4.17.19: nodejs-lodash: command injection via template",
+      "filepath": "package-lock.json",
+      "package": "lodash",
+      "installed_version": "4.17.19",
+      "fixed_version": "4.17.21",
+      "category": "sca"
+    },
+    {
+      "finding_id": "TRIVY-CVE-2026-4800-2",
+      "tool": "trivy",
+      "severity": "HIGH",
+      "rule_id": "CVE-2026-4800",
+      "message": "lodash@4.17.19: lodash: lodash: Arbitrary code execution via untrusted input in template imports",
+      "filepath": "package-lock.json",
+      "package": "lodash",
+      "installed_version": "4.17.19",
+      "fixed_version": "4.18.0",
+      "category": "sca"
+    },
+    {
+      "finding_id": "CONFTEST-1",
+      "tool": "conftest",
+      "severity": "HIGH",
+      "rule_id": "policy",
+      "message": "Dockerfile must include HEALTHCHECK (demo policy)",
+      "filepath": "/Users/souchowd/Desktop/Personal/AI-Driven-DevSecOps/apps/vuln-shop/Dockerfile",
+      "category": "policy"
+    },
+    {
+      "finding_id": "CONFTEST-2",
+      "tool": "conftest",
+      "severity": "HIGH",
+      "rule_id": "policy",
+      "message": "Dockerfile must set a non-root USER (demo policy)",
+      "filepath": "/Users/souchowd/Desktop/Personal/AI-Driven-DevSecOps/apps/vuln-shop/Dockerfile",
+      "category": "policy"
+    }
+  ],
+  "categories": {
+    "sast": 1,
+    "sca": 2,
+    "policy": 2
+  },
+  "root_cause_hypothesis": "Untrusted query input concatenated into SQL (CWE-89)",
+  "llm": {
+    "used": false,
+    "provider": "none"
+  }
+}

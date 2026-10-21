@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 const path = require("node:path");
+const { spawnSync } = require("node:child_process");
 const { runAgent } = require("./agent");
 const { archiveAgentRun } = require("./archive");
 
 function parseArgs(argv) {
   const args = {
-    summary: "artifacts/security-summary.json",
-    out: "agents/security-agent/out",
+    summary: "artifacts/world/security-summary.json",
+    out: "artifacts/agent",
     apply: false,
     allowOpenPr: false,
     skipTests: false,
@@ -35,8 +36,8 @@ async function main() {
     console.log(`Usage: node agents/security-agent/src/cli.js [options]
 
 Options:
-  --summary <path>     Path to security-summary.json
-  --out <dir>          Output directory
+  --summary <path>     Path to security-summary.json (default: artifacts/world/…)
+  --out <dir>          Output directory (default: artifacts/agent)
   --apply              Write remediations into vuln-shop
   --skip-tests         Skip validate/run_tests
   --llm <provider>     ollama | none  (openai/anthropic later)
@@ -52,6 +53,8 @@ Env:
 
   const root = path.resolve(__dirname, "..", "..", "..");
   console.log(`LLM: ${args.llm} / ${args.model}`);
+  console.log(`World summary: ${args.summary}`);
+  console.log(`Agent out:     ${args.out}`);
   const result = await runAgent({
     root,
     summaryPath: path.resolve(root, args.summary),
@@ -69,6 +72,12 @@ Env:
     model: result.llm && result.llm.model ? result.llm.model : args.model,
     hero: result.hero && result.hero.finding_id,
     apply: args.apply,
+  });
+
+  // Sync docs/outputs/agent for GitHub Pages
+  spawnSync("bash", [path.join(root, "scripts/sync-docs-outputs.sh"), "agent"], {
+    cwd: root,
+    stdio: "inherit",
   });
 
   console.log("Security agent finished.");
@@ -89,6 +98,7 @@ Env:
   console.log(`  Audit log:    ${result.auditFile}`);
   console.log(`  Run archive:  ${archived.runDir}`);
   console.log(`  Latest link:  ${path.join(result.outDir, "runs", "latest")}`);
+  console.log(`  Docs mirror:  docs/outputs/agent/`);
   if (result.validation && !result.validation.skipped) {
     console.log(`  Tests:        exit ${result.validation.status}`);
   }

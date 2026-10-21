@@ -1,82 +1,62 @@
 # CI explained
 
-Workflow: [`.github/workflows/security.yml`](https://github.com/soumyadip007/AI-Driven-DevSecOps/blob/main/.github/workflows/security.yml)
+Two workflows, two artifact buckets.
 
-## Jobs
+| Workflow file | Display name | Writes | Purpose |
+|---------------|--------------|--------|---------|
+| `.github/workflows/security.yml` | **Security CI** | `artifacts/world/` | Vulnerability analysis (SAST/SCA/policy) |
+| `.github/workflows/agent-pr.yml` | **Agent PR** | `artifacts/agent/` + remediation PR | Heuristic agent remediations |
+| `.github/workflows/docs.yml` | **docs** | GitHub Pages | Docs site including [/outputs/](https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/) |
 
-| Job | Type | What it does |
-|-----|------|--------------|
-| `unit-tests` | Functional | Runs `vuln-shop` tests (can be green while security is not) |
-| `sast-semgrep` | **SAST** | Semgrep custom rules on `apps/vuln-shop` |
-| `sca-trivy` | **SCA** | Trivy filesystem scan for vulnerable deps |
-| `policy-conftest` | **Policy** | Conftest/OPA rules on the Dockerfile |
-| `aggregate-security-summary` | Evidence | Builds `security-summary.json` for the agent |
+## World vs Agent
+
+```text
+artifacts/world/   ← Security CI / make scan   (findings)
+artifacts/agent/   ← Agent PR / make agent     (evidence + patches)
+docs/outputs/      ← mirrored for the docs site (clickable links)
+```
+
+## Security CI jobs
+
+| Job | Type | Artifact |
+|-----|------|----------|
+| `unit-tests` | Functional | — |
+| `sast-semgrep` | SAST | `world-semgrep` |
+| `sca-trivy` | SCA | `world-trivy` |
+| `policy-conftest` | Policy | `world-conftest` |
+| `aggregate-world-summary` | Evidence | `world-bundle` (full `artifacts/world` + docs mirror) |
 | `demo-findings-report` | Demo signal | Warns when intentional findings remain |
 
-## Why an earlier run looked “broken”
-
-On [run #1](https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/runs/38136665488):
-
-1. **Trivy action tag was invalid** (`aquasecurity/trivy-action@0.28.0` could not be resolved) — tooling bug, now pinned to `0.35.0`.
-2. **Semgrep / Conftest exited non-zero** because they correctly found seeded issues. That looked like a pipeline failure even when the tools worked.
-
-Current design:
-
-- Scanner jobs **collect** findings and stay green when the tool itself succeeds.
-- Findings are visible in the **`security-summary` artifact** and a warning on `demo-findings-report`.
-- That matches the talk: controls provide evidence; the agent (and humans) act on it.
-
-## Artifacts to download after a run
-
-- `semgrep-json`
-- `trivy-json`
-- `conftest-json`
-- `security-summary` ← feed this to `make agent`
-
-## Remediation PR workflow (`security-agent-pr`)
-
-Workflow: [`.github/workflows/security-agent-pr.yml`](https://github.com/soumyadip007/AI-Driven-DevSecOps/blob/main/.github/workflows/security-agent-pr.yml)
+## Agent PR workflow
 
 | Trigger | Behavior |
 |---------|----------|
-| After **security** workflow finishes on `main` | Runs heuristic agent and opens/updates a PR |
+| After **Security CI** finishes on `main` | Runs heuristic agent and opens/updates a PR |
 | Manual **Run workflow** | Same |
-
-What it runs (no Ollama in CI):
 
 ```bash
 # scripts/ci-agent-heuristic.sh ≈
-make agent-heuristic   # --llm none
-# then --apply remediations + reports/security-agent/*
+make agent-heuristic   # --llm none --apply
 ```
 
-PR title: `fix(security): agent-heuristic remediations for vuln-shop`  
+PR title: `fix(agent): heuristic remediations for vuln-shop`  
 Branch: `agent/heuristic-remediation`  
-
-The PR body states it was **created by CI** via the heuristic agent. Humans still approve the merge.
+Uploaded artifact: **`agent-reports`**
 
 ### Required: allow Actions to open PRs
 
-If the job fails with:
+If PR create fails with *not permitted to create or approve pull requests*:
 
-> `GitHub Actions is not permitted to create or approve pull requests`
+1. [Settings → Actions → General](https://github.com/soumyadip007/AI-Driven-DevSecOps/settings/actions)  
+2. **Read and write permissions** + ☑ **Allow GitHub Actions to create and approve pull requests**  
+3. Or secret `AGENT_PR_TOKEN` (classic PAT, `repo` scope)
 
-do **one** of the following:
+## Docs site outputs
 
-#### Option A (recommended for the demo)
+After deploy, open:
 
-1. Open [Settings → Actions → General](https://github.com/soumyadip007/AI-Driven-DevSecOps/settings/actions)
-2. Under **Workflow permissions**:
-   - Select **Read and write permissions**
-   - Check **Allow GitHub Actions to create and approve pull requests**
-3. Save, then re-run **security-agent-pr**
+**https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/**
 
-#### Option B (PAT)
+You get tables linking every world/agent file (summary, evidence, patches, audit, …).
 
-1. Create a classic Personal Access Token with `repo` scope  
-2. Add it as repository secret `AGENT_PR_TOKEN`  
-3. Re-run the workflow (it prefers this secret over `GITHUB_TOKEN`)
-
-> Note: the branch push can succeed even when PR creation is blocked. After enabling the setting, re-run — the PR will be created against `agent/heuristic-remediation`.
-
-For the live LLM briefing on stage, use local `make agent` (Ollama). See [demo walkthrough](demo-walkthrough.md).
+Local: `make sync-outputs` then `make docs-serve`.

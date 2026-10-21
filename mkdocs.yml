@@ -67,4 +67,14 @@ nav:
       - Stage script: demo-script.md
       - Tooling: tooling.md
       - CI explained: ci.md
+  - Outputs:
+      - World + Agent catalog: outputs/index.md
+      - Agent evidence: outputs/agent/evidence.md
+      - Layout plan: outputs/layout.md
   - Plan: plan.md
+
+# JSON / remediated files under docs/outputs are static assets; ignore nav omissions.
+validation:
+  omitted_files: ignore
+  unrecognized_links: ignore
+  absolute_links: ignore

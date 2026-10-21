@@ -53,7 +53,8 @@ Show files briefly:
 make scan
 ```
 
-Open `artifacts/security-summary.json` — point at SAST / SCA / policy counts.
+Open `artifacts/world/security-summary.json` — point at SAST / SCA / policy counts.  
+Or the live docs catalog: https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/
 
 **Option B (GitHub Actions):**
 
@@ -79,12 +80,12 @@ make agent
 Show live:
 
 1. Terminal: `LLM: ollama / llama3` then finished summary  
-2. `agents/security-agent/out/llm-briefing.md` — audience narrative citing finding IDs  
-3. `agents/security-agent/out/audit.jsonl` — scroll to:
+2. `artifacts/agent/llm-briefing.md` (or docs site **Outputs → Agent**)  
+3. `artifacts/agent/audit.jsonl` — scroll to:
    - `llm_chat` status ok  
    - `merge_pr` **denied** (tool boundary beat)  
-4. `agents/security-agent/out/evidence.md` — briefing + plan + three remediations  
-5. Patches listed:
+4. `artifacts/agent/evidence.md` — briefing + plan + three remediations  
+5. Patches under `artifacts/agent/`:
    - `products.remediated.js`
    - `package.json.remediated`
    - `Dockerfile.remediated`
@@ -99,10 +100,10 @@ Talking point:
 
 This is the **reliable / no-Ollama** automation path.
 
-1. GitHub → **Actions** → **security-agent-pr**  
-2. Run workflow (**Run workflow** on `main`) — or wait after a `security` workflow finishes  
+1. GitHub → **Actions** → **Agent PR**  
+2. Run workflow (**Run workflow** on `main`) — or wait after **Security CI** finishes  
 3. When it completes, open the PR:  
-   **`fix(security): agent-heuristic remediations for vuln-shop`**  
+   **`fix(agent): heuristic remediations for vuln-shop`**  
    Branch: `agent/heuristic-remediation`
 
 In the PR body, call out:

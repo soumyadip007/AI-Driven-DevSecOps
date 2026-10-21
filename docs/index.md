@@ -12,7 +12,8 @@ Demo documentation for the **CRACCON’26** talk: security as a continuous feedb
 | [Projects](projects.md) | What `vuln-shop` and `security-agent` do, and how they connect |
 | [Security loop](concepts/security-loop.md) | Perceive → Decide → Act → Reflect → Remember |
 | [Tooling](tooling.md) | Install scanners and run `make scan` / `make agent` |
-| [CI explained](ci.md) | How GitHub Actions fits the demo |
+| [CI explained](ci.md) | Security CI (world) + Agent PR |
+| [**Outputs**](outputs/index.md) | Clickable world + agent files on this site |
 | [Stage script](demo-script.md) | Minute-by-minute talk flow |
 
 ## Quick commands

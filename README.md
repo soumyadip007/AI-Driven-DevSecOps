@@ -41,15 +41,18 @@ make test
 Requires optional CLIs: [Semgrep](https://semgrep.dev/), [Trivy](https://trivy.dev/), [Conftest](https://www.conftest.dev/). If missing, the scan script falls back to `fixtures/findings/`.
 
 ```bash
-make scan          # tests + scanners → artifacts/security-summary.json
-make agent         # Ollama (llama3) briefing + remediation patches
-make agent-heuristic  # same loop without LLM
+make scan             # → artifacts/world/  (Security CI / scanners)
+make agent            # → artifacts/agent/  (Ollama briefing + patches)
+make agent-heuristic  # same agent path without LLM
+make sync-outputs     # mirror into docs/outputs/ for the site
 # optional:
-make agent-apply   # apply remediations into vuln-shop
-make demo-reset    # restore vulnerable files from git
+make agent-apply && make demo-reset
 ```
 
-Requires [Ollama](https://ollama.com/) running locally with `llama3` (or pass `--model`). See [docs/concepts/llm.md](docs/concepts/llm.md).
+**Docs catalog (after Pages deploy):**  
+https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/
+
+Requires [Ollama](https://ollama.com/) for `make agent`. See [docs/concepts/llm.md](docs/concepts/llm.md).
 
 ### What the audience should see
 

@@ -34,9 +34,11 @@ Outputs:
 
 | Path | Purpose |
 |------|---------|
-| `artifacts/*.json` | Latest results for `make agent` |
-| `artifacts/runs/<YYYYMMDD-HHMMSS>/` | Timestamped archive of that run |
-| `artifacts/runs/latest` | Symlink to the newest archive |
+| `artifacts/world/` | **World** — scanner findings + `security-summary.json` |
+| `artifacts/world/runs/<timestamp>/` | Timestamped world archives |
+| `artifacts/agent/` | **Agent** — evidence, patches, audit, briefing |
+| `artifacts/agent/runs/<timestamp>/` | Timestamped agent archives |
+| `docs/outputs/` | Mirrored for GitHub Pages ([/outputs/](https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/)) |
 
 If a CLI is missing, or Trivy fails, the script falls back to `fixtures/findings/` so the agent demo still works offline / on flaky Wi‑Fi.
 

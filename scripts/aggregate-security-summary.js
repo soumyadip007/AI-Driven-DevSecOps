@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * Aggregate scanner outputs into artifacts/security-summary.json
+ * Aggregate scanner outputs into artifacts/world/security-summary.json
  * for the security agent Observe phase.
  */
 const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
-const ARTIFACTS = process.env.ARTIFACTS_DIR || path.join(ROOT, "artifacts");
+const ARTIFACTS =
+  process.env.ARTIFACTS_DIR || path.join(ROOT, "artifacts", "world");
 
 function readJson(file, fallback = null) {
   try {
