@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Optional note for this Security CI run"
+        required: false
+        default: "manual trigger"
 
 permissions:
   contents: read

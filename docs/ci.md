@@ -32,7 +32,21 @@ docs/outputs/      ← mirrored for the docs site (clickable links)
 | Trigger | Behavior |
 |---------|----------|
 | After **Security CI** finishes on `main` | Runs heuristic agent and opens/updates a PR |
-| Manual **Run workflow** | Same |
+| Manual **Run workflow** | Same (button on the **Agent PR** workflow page) |
+
+### How to get the “Run workflow” button
+
+1. Open: https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/agent-pr.yml  
+2. Select workflow name **Agent PR** (not an old disabled `security-agent-pr` entry).  
+3. Branch dropdown: **`main`**.  
+4. Click **Run workflow**.
+
+If the button is missing:
+
+- You must be on the workflow file that exists on **`main`** (this repo uses `.github/workflows/agent-pr.yml`).  
+- Refresh after the latest push lands on `main`.  
+- Under Actions → manage workflows, ensure **Agent PR** is **enabled** (not disabled after the rename).  
+- Direct link above is the reliable entry point.
 
 ```bash
 # scripts/ci-agent-heuristic.sh ≈

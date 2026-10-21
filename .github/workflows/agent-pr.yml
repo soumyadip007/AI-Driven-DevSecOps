@@ -1,10 +1,22 @@
 name: Agent PR
 
-# Creates a remediation PR using the heuristic agent (no LLM).
-# Reads world findings; writes artifacts/agent + reports; opens PR.
+# Manual "Run workflow" + auto after Security CI.
+# If you do not see Run workflow: open this file's workflow (name Agent PR),
+# not the old disabled "security-agent-pr" entry.
 
 on:
+  # Explicit inputs force the Actions UI to show the Run workflow button
   workflow_dispatch:
+    inputs:
+      note:
+        description: "Optional note for this run (shown in the job summary)"
+        required: false
+        default: "manual trigger"
+      use_fixtures:
+        description: "If world-bundle is missing, seed artifacts/world from fixtures"
+        type: boolean
+        default: true
+
   workflow_run:
     workflows: ["Security CI"]
     types: [completed]
@@ -23,8 +35,9 @@ jobs:
     name: agent-heuristic → PR
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' ||
-       github.event.workflow_run.conclusion == 'failure')
+      (github.event_name == 'workflow_run' &&
+       (github.event.workflow_run.conclusion == 'success' ||
+        github.event.workflow_run.conclusion == 'failure'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
@@ -79,6 +92,7 @@ jobs:
       - name: Notice about PR permissions
         run: |
           echo "::notice::PR create needs: Settings → Actions → General → Allow GitHub Actions to create and approve pull requests — OR secret AGENT_PR_TOKEN. See docs/ci.md"
+          echo "Trigger: ${{ github.event_name }} / ${{ github.event.inputs.note || 'n/a' }}"
 
       - name: Upload agent artifacts
         uses: actions/upload-artifact@v4
@@ -123,6 +137,8 @@ jobs:
         run: |
           echo "### Agent PR" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Event: \`${{ github.event_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Note: ${{ github.event.inputs.note || 'n/a' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Mode: **heuristic** (\`make agent-heuristic\`)" >> "$GITHUB_STEP_SUMMARY"
           echo "- World input: \`artifacts/world/security-summary.json\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Agent out: \`artifacts/agent/\`" >> "$GITHUB_STEP_SUMMARY"

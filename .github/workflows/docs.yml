@@ -9,6 +9,11 @@ on:
       - "requirements-docs.txt"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
+    inputs:
+      note:
+        description: "Optional note for this docs deploy"
+        required: false
+        default: "manual trigger"
 
 permissions:
   contents: read
