@@ -1,5 +1,6 @@
 name: Security CI
 
+# On each run, also disable the orphaned agent-pr.yml workflow (duplicate sidebar entry).
 on:
   push:
     branches: [main]
@@ -13,10 +14,36 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 # Vulnerability analysis → GitHub Actions Artifact "world"
 
 jobs:
+  disable-orphan-agent-pr:
+    name: disable-orphan-agent-pr
+    runs-on: ubuntu-latest
+    # Only on main pushes — remove duplicate "Agent PR" left by filename rename
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Disable obsolete .github/workflows/agent-pr.yml workflow
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Prefer path lookup; fall back to known id from this repo
+          ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows" \
+            --jq '.workflows[] | select(.path==".github/workflows/agent-pr.yml") | .id' | head -1 || true)"
+          ID="${ID:-391847386}"
+          STATE="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${ID}" --jq '.state' || echo missing)"
+          echo "Orphan workflow id=${ID} state=${STATE}"
+          if [ "$STATE" = "active" ]; then
+            gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${ID}/disable"
+            echo "Disabled orphan agent-pr.yml (duplicate Agent PR sidebar entry)."
+          else
+            echo "Nothing to disable (state=${STATE})."
+          fi
+
   tests:
     name: unit-tests
     runs-on: ubuntu-latest
