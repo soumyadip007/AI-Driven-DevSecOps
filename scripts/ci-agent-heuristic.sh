@@ -62,20 +62,22 @@ This pull request was **opened automatically by GitHub Actions** (**Agent PR** w
 make agent-heuristic   # --llm none --apply
 ```
 
-### Layout
+### GitHub Actions Artifacts (download from the workflow run)
 
-| Bucket | Path | Role |
-|--------|------|------|
-| **World** | `artifacts/world/` | Vulnerability analysis (Security CI scanners) |
-| **Agent** | `artifacts/agent/` | Evidence, plan, patches, audit |
-| **Docs** | `docs/outputs/` | Same files on the docs site under [/outputs/](https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/) |
+| Artifact | Contents |
+|----------|----------|
+| **`world`** | From **Security CI** — Semgrep / Trivy / Conftest / `security-summary.json` |
+| **`agent`** | From **this run** — evidence, plan, patches, audit under `artifacts/agent/` |
+| **`agent-reports`** | From **this run** — `reports/security-agent/` (this PR body + evidence copy) |
+
+Guide: https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/
 
 ### How this was created
 
-1. CI loaded `artifacts/world/security-summary.json` (Security CI or fixtures).
+1. CI loaded `artifacts/world/security-summary.json` (Security CI artifact `world`, or fixtures).
 2. The bounded security agent ran in **heuristic mode** (no LLM / no Ollama).
 3. It applied remediations for SAST (SQL), SCA (`lodash`), and Dockerfile policy.
-4. Evidence was written under `artifacts/agent/` and mirrored to `docs/outputs/agent/`.
+4. Full outputs were uploaded as Actions Artifacts (`agent`, `agent-reports`) — **not** committed under `docs/outputs/` on `main`.
 
 ### Important (demo / HIL)
 
@@ -85,8 +87,8 @@ make agent-heuristic   # --llm none --apply
 
 ### Review checklist
 
-- [ ] Browse [docs outputs](https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/)
-- [ ] Read `reports/security-agent/evidence.md` / `docs/outputs/agent/evidence.md`
+- [ ] Download artifact **`agent`** from this Actions run
+- [ ] Read `reports/security-agent/evidence.md` in the PR diff
 - [ ] Diff SQL fix, dependency bump, Dockerfile harden
 - [ ] Approve merge only if residual risk is accepted
 
@@ -101,4 +103,4 @@ EOF
   echo '```'
 } >> reports/security-agent/pr-body.md
 
-echo "Done. World + agent ready; docs/outputs synced; PR body written."
+echo "Done. World + agent ready; PR body written (outputs via Actions Artifacts)."

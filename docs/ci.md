@@ -1,70 +1,43 @@
 # CI explained
 
-Two workflows, two artifact buckets.
+Two workflows, two **GitHub Actions Artifacts**.
 
-| Workflow file | Display name | Writes | Purpose |
-|---------------|--------------|--------|---------|
-| `.github/workflows/security.yml` | **Security CI** | `artifacts/world/` | Vulnerability analysis (SAST/SCA/policy) |
-| `.github/workflows/security-agent-pr.yml` | **Agent PR** | `artifacts/agent/` + remediation PR | Heuristic agent remediations |
-| `.github/workflows/docs.yml` | **docs** | GitHub Pages | Docs site including [/outputs/](https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/) |
+| Workflow file | Display name | Artifact | Purpose |
+|---------------|--------------|----------|---------|
+| `.github/workflows/security.yml` | **Security CI** | **`world`** | Vulnerability analysis (SAST/SCA/policy) |
+| `.github/workflows/security-agent-pr.yml` | **Agent PR** | **`agent`**, **`agent-reports`** | Heuristic remediations + PR |
+| `.github/workflows/docs.yml` | **docs** | Pages site | Docs (including [Outputs guide](outputs/index.md)) |
+
+Generated `docs/outputs/world/` and `docs/outputs/agent/` are **gitignored**.  
+Download run outputs from the Actions run page → **Artifacts**.
 
 ## World vs Agent
 
 ```text
-artifacts/world/   ← Security CI / make scan   (findings)
-artifacts/agent/   ← Agent PR / make agent     (evidence + patches)
-docs/outputs/      ← mirrored for the docs site (clickable links)
+artifacts/world/   ← Security CI / make scan   → Artifact "world"
+artifacts/agent/   ← Agent PR / make agent     → Artifact "agent"
 ```
 
-## Security CI jobs
+## How to download artifacts
 
-| Job | Type | Artifact |
-|-----|------|----------|
-| `unit-tests` | Functional | — |
-| `sast-semgrep` | SAST | `world-semgrep` |
-| `sca-trivy` | SCA | `world-trivy` |
-| `policy-conftest` | Policy | `world-conftest` |
-| `aggregate-world-summary` | Evidence | `world-bundle` (full `artifacts/world` + docs mirror) |
-| `demo-findings-report` | Demo signal | Warns when intentional findings remain |
+1. Open the workflow run (e.g. [Agent PR](https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/security-agent-pr.yml))
+2. Open a completed run
+3. Scroll to **Artifacts**
+4. Download `world` / `agent` / `agent-reports`
 
-## Agent PR workflow
+## Agent PR — Run workflow
 
-| Trigger | Behavior |
-|---------|----------|
-| After **Security CI** finishes on `main` | Runs heuristic agent and opens/updates a PR |
-| Manual **Run workflow** | Same (button on the **Agent PR** workflow page) |
+https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/security-agent-pr.yml
 
-### How to get the “Run workflow” button
+1. Branch **`main`**
+2. **Run workflow**
 
-1. Open: https://github.com/soumyadip007/AI-Driven-DevSecOps/actions/workflows/security-agent-pr.yml  
-2. Branch dropdown: **`main`**.  
-3. Click **Run workflow** (you should see inputs: `note`, `use_fixtures`).
+### Allow Actions to open PRs
 
-Display name in the sidebar is **Agent PR**; the file path stays `security-agent-pr.yml` so this URL keeps working.
+If PR create fails with *not permitted*:
 
-```bash
-# scripts/ci-agent-heuristic.sh ≈
-make agent-heuristic   # --llm none --apply
-```
-
-PR title: `fix(agent): heuristic remediations for vuln-shop`  
-Branch: `agent/heuristic-remediation`  
-Uploaded artifact: **`agent-reports`**
-
-### Required: allow Actions to open PRs
-
-If PR create fails with *not permitted to create or approve pull requests*:
-
-1. [Settings → Actions → General](https://github.com/soumyadip007/AI-Driven-DevSecOps/settings/actions)  
-2. **Read and write permissions** + ☑ **Allow GitHub Actions to create and approve pull requests**  
+1. [Settings → Actions → General](https://github.com/soumyadip007/AI-Driven-DevSecOps/settings/actions)
+2. **Read and write** + ☑ **Allow GitHub Actions to create and approve pull requests**
 3. Or secret `AGENT_PR_TOKEN` (classic PAT, `repo` scope)
 
-## Docs site outputs
-
-After deploy, open:
-
-**https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/**
-
-You get tables linking every world/agent file (summary, evidence, patches, audit, …).
-
-Local: `make sync-outputs` then `make docs-serve`.
+Artifacts still upload even if PR creation is blocked.

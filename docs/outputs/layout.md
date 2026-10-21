@@ -2,72 +2,39 @@
 
 ## Goal
 
-Separate **vulnerability analysis** evidence from **agent remediation** evidence, rename CI clearly, and make both browsable from the docs site.
+Separate **vulnerability analysis** evidence from **agent remediation** evidence.  
+Persist them as **GitHub Actions Artifacts** (not git commits on `main`).
 
 ## Naming
 
 | Name | Meaning |
 |------|---------|
-| **Security CI** | Scanner pipeline (Semgrep / Trivy / Conftest) — finding the issues |
-| **Agent PR** | Heuristic agent remediations + PR (was `security-agent-pr`) |
-| **`artifacts/world/`** | Scanner / “security world” findings + summaries |
-| **`artifacts/agent/`** | Agent evidence, briefings, patches, audit trail |
+| **Security CI** | Scanner pipeline — finding the issues |
+| **Agent PR** | Heuristic agent remediations + PR |
+| **`artifacts/world/`** | Scanner findings + summaries |
+| **`artifacts/agent/`** | Agent evidence, briefings, patches, audit |
 
-> “World” = the observed security world (findings from controls).  
-> “Agent” = what the bounded agent decides and proposes.
-
-## Directory layout
+## Local directories
 
 ```text
 artifacts/
-  world/                          # Security CI / make scan
-    security-summary.json         # latest (agent reads this)
-    semgrep.json
-    trivy.json
-    conftest.json
-    conftest.txt
-    runs/<YYYYMMDD-HHMMSS>/       # timestamped archives
-    runs/latest -> …
-
-  agent/                          # make agent / Agent PR CI
-    evidence.md                   # latest
-    llm-briefing.md
-    audit.jsonl
-    plan.json
-    correlation.json
-    remediations.json
-    *.remediated*
-    runs/<YYYYMMDD-HHMMSS>/
-    runs/latest -> …
-
-docs/outputs/                     # published on GitHub Pages
-  index.md                        # catalog + links
-  world/                          # synced snapshots for the site
-  agent/                          # synced snapshots for the site
+  world/                    # make scan / Security CI
+    security-summary.json
+    semgrep.json, trivy.json, conftest.*
+    runs/<timestamp>/
+  agent/                    # make agent / Agent PR
+    evidence.md, audit.jsonl, *.remediated*
+    runs/<timestamp>/
 ```
 
-Legacy paths (`artifacts/*.json`, `agents/security-agent/out/`) become thin redirects/copies into `world/` and `agent/`.
+`docs/outputs/world/` and `docs/outputs/agent/` are **gitignored** local mirrors only.
 
-## CI artifacts
+## CI Artifacts
 
-| Workflow | Display name | Uploaded artifact names |
-|----------|--------------|-------------------------|
-| `security.yml` | **Security CI** | `world-security-summary`, `world-semgrep`, `world-trivy`, `world-conftest` |
-| `security-agent-pr.yml` | **Agent PR** | `agent-reports` (from `artifacts/agent` + `reports/security-agent`) |
-| `docs.yml` | **docs** | Site includes `docs/outputs/**` |
+| Workflow | Artifact | Path uploaded |
+|----------|----------|---------------|
+| `security.yml` (**Security CI**) | `world` | `artifacts/world/` |
+| `security-agent-pr.yml` (**Agent PR**) | `agent` | `artifacts/agent/` |
+| `security-agent-pr.yml` (**Agent PR**) | `agent-reports` | `reports/security-agent/` |
 
-## Docs site access
-
-After deploy:  
-`https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/`
-
-Lists every generated file under **World** and **Agent** with in-site links (and pointers to Actions artifact downloads).
-
-## Implementation checklist
-
-1. Restructure local scan + agent scripts to write under `artifacts/world` and `artifacts/agent`
-2. Rename Agent PR workflow file/display name; retitle Security CI
-3. Update Makefile, CI, aggregator paths
-4. Sync snapshots into `docs/outputs/{world,agent}` for Pages
-5. Add Outputs nav page; test `make scan` + `make agent` + docs build
-6. Commit & push
+Download from the run’s **Artifacts** section after the job finishes.

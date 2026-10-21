@@ -1,11 +1,9 @@
 name: Agent PR
 
-# File path: .github/workflows/security-agent-pr.yml  (keeps Actions URL stable)
-# Display name: Agent PR
-# Manual "Run workflow" + auto after Security CI.
+# File path: .github/workflows/security-agent-pr.yml  (stable Actions URL)
+# Outputs are GitHub Actions Artifacts (not committed to main / docs).
 
 on:
-  # Explicit inputs force the Actions UI to show the Run workflow button
   workflow_dispatch:
     inputs:
       note:
@@ -13,7 +11,7 @@ on:
         required: false
         default: "manual trigger"
       use_fixtures:
-        description: "If world-bundle is missing, seed artifacts/world from fixtures"
+        description: "If world artifact is missing, seed artifacts/world from fixtures"
         type: boolean
         default: true
 
@@ -25,6 +23,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: read
 
 concurrency:
   group: agent-pr
@@ -56,27 +55,19 @@ jobs:
         working-directory: apps/vuln-shop
         run: npm ci
 
-      - name: Try download world-bundle from Security CI
+      - name: Download world artifact from Security CI
         if: github.event_name == 'workflow_run'
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: world-bundle
-          path: downloaded-world
+          name: world
+          path: artifacts/world
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Prepare artifacts/world
         run: |
           mkdir -p artifacts/world
-          if [[ -d downloaded-world ]]; then
-            find downloaded-world -type f -print || true
-            find downloaded-world -name 'security-summary.json' -exec cp {} artifacts/world/ \;
-            find downloaded-world -name 'semgrep.json' -exec cp {} artifacts/world/ \;
-            find downloaded-world -name 'trivy.json' -exec cp {} artifacts/world/ \;
-            find downloaded-world -name 'conftest.json' -exec cp {} artifacts/world/ \;
-            find downloaded-world -name 'conftest.txt' -exec cp {} artifacts/world/ \;
-          fi
           if [[ ! -s artifacts/world/security-summary.json ]]; then
             echo "Using fixtures/findings → artifacts/world"
             cp fixtures/findings/* artifacts/world/ || true
@@ -91,18 +82,24 @@ jobs:
 
       - name: Notice about PR permissions
         run: |
-          echo "::notice::PR create needs: Settings → Actions → General → Allow GitHub Actions to create and approve pull requests — OR secret AGENT_PR_TOKEN. See docs/ci.md"
+          echo "::notice::PR create needs: Settings → Actions → General → Allow GitHub Actions to create and approve pull requests — OR secret AGENT_PR_TOKEN."
           echo "Trigger: ${{ github.event_name }} / ${{ github.event.inputs.note || 'n/a' }}"
 
-      - name: Upload agent artifacts
+      - name: Upload agent Actions Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent
+          path: artifacts/agent/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload agent-reports Actions Artifact
         uses: actions/upload-artifact@v4
         with:
           name: agent-reports
-          path: |
-            artifacts/agent/
-            reports/security-agent/
-            docs/outputs/agent/
-            docs/outputs/index.md
+          path: reports/security-agent/
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Create or update remediation pull request
         id: cpr
@@ -112,7 +109,9 @@ jobs:
           commit-message: |
             fix(vuln-shop): apply heuristic security-agent remediations
 
-            Opened by CI (Agent PR / make agent-heuristic). Human merge approval required.
+            Opened by CI (Agent PR / make agent-heuristic).
+            Download Actions Artifacts 'agent' and 'agent-reports' from this run.
+            Human merge approval required.
           title: "fix(agent): heuristic remediations for vuln-shop"
           body-path: reports/security-agent/pr-body.md
           branch: agent/heuristic-remediation
@@ -123,13 +122,13 @@ jobs:
             apps/vuln-shop/package-lock.json
             apps/vuln-shop/Dockerfile
             reports/security-agent/**
-            docs/outputs/**
 
       - name: Explain PR permission failure
         if: failure() && steps.cpr.outcome == 'failure'
         run: |
           echo "::error::PR creation failed. Enable Actions → allow creating PRs, or set AGENT_PR_TOKEN."
           echo "Settings: https://github.com/${{ github.repository }}/settings/actions"
+          echo "Note: Artifacts 'agent' / 'agent-reports' may still be available on this run even if PR create failed."
           exit 1
 
       - name: Summary
@@ -139,8 +138,6 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Event: \`${{ github.event_name }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Note: ${{ github.event.inputs.note || 'n/a' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Mode: **heuristic** (\`make agent-heuristic\`)" >> "$GITHUB_STEP_SUMMARY"
-          echo "- World input: \`artifacts/world/security-summary.json\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Agent out: \`artifacts/agent/\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Docs: \`docs/outputs/\` → site **/outputs/**" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Artifacts (download at bottom of this run):** \`agent\`, \`agent-reports\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- World input: \`artifacts/world/\` (from Security CI artifact \`world\` or fixtures)" >> "$GITHUB_STEP_SUMMARY"
           echo "- PR: ${{ steps.cpr.outputs.pull-request-url || 'not created yet' }}" >> "$GITHUB_STEP_SUMMARY"

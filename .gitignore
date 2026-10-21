@@ -2,12 +2,16 @@
 site/
 .venv-docs/
 
-# Demo outputs
+# Demo outputs (local + CI workspace — published via GitHub Actions Artifacts)
 artifacts/
 agents/security-agent/out/
 apps/vuln-shop/data/
 apps/vuln-shop/node_modules/
 agents/security-agent/node_modules/
+
+# Generated docs mirrors (do not commit — download from Actions Artifacts)
+docs/outputs/world/
+docs/outputs/agent/
 
 # Large local presentation assets (keep out of git)
 *.pdf

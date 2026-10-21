@@ -68,8 +68,7 @@ nav:
       - Tooling: tooling.md
       - CI explained: ci.md
   - Outputs:
-      - World + Agent catalog: outputs/index.md
-      - Agent evidence: outputs/agent/evidence.md
+      - Artifacts guide: outputs/index.md
       - Layout plan: outputs/layout.md
   - Plan: plan.md
 

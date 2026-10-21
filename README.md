@@ -49,8 +49,8 @@ make sync-outputs     # mirror into docs/outputs/ for the site
 make agent-apply && make demo-reset
 ```
 
-**Docs catalog (after Pages deploy):**  
-https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/
+**Outputs:** download **GitHub Actions Artifacts** (`world` / `agent`) from each workflow run.  
+Guide: https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/
 
 Requires [Ollama](https://ollama.com/) for `make agent`. See [docs/concepts/llm.md](docs/concepts/llm.md).
 

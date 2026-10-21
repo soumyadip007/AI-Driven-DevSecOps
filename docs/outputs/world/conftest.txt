@@ -1,4 +1,0 @@
-[31mFAIL[0m - /Users/souchowd/Desktop/Personal/AI-Driven-DevSecOps/apps/vuln-shop/Dockerfile - main - Dockerfile must include HEALTHCHECK (demo policy)
-[31mFAIL[0m - /Users/souchowd/Desktop/Personal/AI-Driven-DevSecOps/apps/vuln-shop/Dockerfile - main - Dockerfile must set a non-root USER (demo policy)
-
-[31m3 tests, 1 passed, 0 warnings, 2 failures, 0 exceptions[0m

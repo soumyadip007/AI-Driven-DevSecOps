@@ -30,6 +30,7 @@ Published on GitHub Pages so you can open evidence from the docs site during the
 | `audit.jsonl` | [open](agent/audit.jsonl) |
 | `correlation.json` | [open](agent/correlation.json) |
 | `evidence.md` | [open](agent/evidence.md) |
+| `llm-briefing.md` | [open](agent/llm-briefing.md) |
 | `package.json.remediated` | [open](agent/package.json.remediated) |
 | `plan.json` | [open](agent/plan.json) |
 | `products.remediated.js` | [open](agent/products.remediated.js) |

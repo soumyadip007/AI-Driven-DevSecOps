@@ -14,7 +14,7 @@ on:
 permissions:
   contents: read
 
-# Vulnerability analysis (world): Semgrep / Trivy / Conftest → artifacts/world/
+# Vulnerability analysis → GitHub Actions Artifact "world"
 
 jobs:
   tests:
@@ -61,6 +61,7 @@ jobs:
         with:
           name: world-semgrep
           path: artifacts/world/semgrep.json
+          retention-days: 14
 
   sca-trivy:
     name: sca-trivy
@@ -88,6 +89,7 @@ jobs:
           name: world-trivy
           path: artifacts/world/trivy.json
           if-no-files-found: warn
+          retention-days: 14
 
   policy-conftest:
     name: policy-conftest
@@ -109,7 +111,6 @@ jobs:
           conftest test apps/vuln-shop/Dockerfile \
             --policy policies/conftest | tee artifacts/world/conftest.txt
           set -e
-          echo "Conftest finished (world findings collected)."
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -117,6 +118,7 @@ jobs:
           path: |
             artifacts/world/conftest.json
             artifacts/world/conftest.txt
+          retention-days: 14
 
   aggregate:
     name: aggregate-world-summary
@@ -130,7 +132,8 @@ jobs:
           path: downloaded
       - name: Collect into artifacts/world
         run: |
-          mkdir -p artifacts/world
+          mkdir -p artifacts/world/runs
+          STAMP=$(date +%Y%m%d-%H%M%S)
           find downloaded -type f -print || true
           cp downloaded/world-semgrep/semgrep.json artifacts/world/ 2>/dev/null || true
           cp downloaded/world-trivy/trivy.json artifacts/world/ 2>/dev/null || true
@@ -142,8 +145,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Aggregate summary
-        run: ARTIFACTS_DIR=artifacts/world node scripts/aggregate-security-summary.js
+      - name: Aggregate summary + stamp run
+        run: |
+          ARTIFACTS_DIR=artifacts/world node scripts/aggregate-security-summary.js
+          STAMP=$(date +%Y%m%d-%H%M%S)
+          mkdir -p "artifacts/world/runs/$STAMP"
+          for f in semgrep.json trivy.json conftest.json conftest.txt security-summary.json; do
+            [[ -f "artifacts/world/$f" ]] && cp "artifacts/world/$f" "artifacts/world/runs/$STAMP/"
+          done
+          echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
+          echo "World run stamped: $STAMP"
       - name: Print summary
         run: |
           python3 - <<'PY'
@@ -153,17 +164,13 @@ jobs:
           for f in s.get("findings", [])[:20]:
               print(f"- {f['finding_id']}: {f['message'][:140]}")
           PY
-      - name: Sync docs/outputs/world
-        run: |
-          chmod +x scripts/sync-docs-outputs.sh
-          bash scripts/sync-docs-outputs.sh world
-      - uses: actions/upload-artifact@v4
+      - name: Upload world Actions Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: world-bundle
-          path: |
-            artifacts/world/
-            docs/outputs/world/
-            docs/outputs/index.md
+          name: world
+          path: artifacts/world/
+          retention-days: 30
+          if-no-files-found: error
 
   demo-findings:
     name: demo-findings-report
@@ -173,26 +180,28 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: world-bundle
-          path: downloaded
+          name: world
+          path: artifacts/world
       - name: Report intentional demo findings
         run: |
-          SUMMARY=$(find downloaded -name security-summary.json | head -1)
-          echo "Using summary: $SUMMARY"
-          export SUMMARY
           python3 <<'PY'
-          import json, os
-          path = os.environ["SUMMARY"]
-          s = json.load(open(path))
+          import json
+          s = json.load(open("artifacts/world/security-summary.json"))
           total = s.get("counts", {}).get("total", 0)
           print(f"Total findings: {total}")
           for f in s.get("findings", []):
               print(f"- [{f.get('category')}] {f.get('finding_id')}: {f.get('message')}")
           if total > 0:
               print(
-                  f"::warning::Demo: {total} intentional findings remain in vuln-shop. "
-                  "Download world-bundle for the agent."
+                  f"::warning::Demo: {total} intentional findings. "
+                  "Download Actions Artifact 'world' from this run."
               )
           else:
               print("::notice::No findings in world security-summary.")
           PY
+      - name: Job summary
+        run: |
+          echo "### Security CI — world artifact" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Download artifact: **\`world\`** (bottom of this run page)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Contains: \`artifacts/world/*\` (summary, Semgrep, Trivy, Conftest, runs/)" >> "$GITHUB_STEP_SUMMARY"

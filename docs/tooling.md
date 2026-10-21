@@ -38,7 +38,8 @@ Outputs:
 | `artifacts/world/runs/<timestamp>/` | Timestamped world archives |
 | `artifacts/agent/` | **Agent** — evidence, patches, audit, briefing |
 | `artifacts/agent/runs/<timestamp>/` | Timestamped agent archives |
-| `docs/outputs/` | Mirrored for GitHub Pages ([/outputs/](https://soumyadip007.github.io/AI-Driven-DevSecOps/outputs/)) |
+| `docs/outputs/world|agent/` | Local mirror only (**gitignored**); CI publishes via Actions Artifacts |
+| Actions Artifacts | Download `world` / `agent` from the workflow run page |
 
 If a CLI is missing, or Trivy fails, the script falls back to `fixtures/findings/` so the agent demo still works offline / on flaky Wi‑Fi.
 

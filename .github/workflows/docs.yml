@@ -36,11 +36,8 @@ jobs:
           cache-dependency-path: requirements-docs.txt
       - name: Install MkDocs
         run: pip install -r requirements-docs.txt
-      - name: Ensure docs/outputs catalog exists
-        run: |
-          chmod +x scripts/sync-docs-outputs.sh
-          bash scripts/sync-docs-outputs.sh all || true
       - name: Build site
+        # docs/outputs/world|agent are gitignored; index.md + layout.md explain Actions Artifacts
         run: mkdocs build --strict
       - uses: actions/upload-pages-artifact@v3
         with:
